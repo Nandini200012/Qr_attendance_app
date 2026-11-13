@@ -148,10 +148,7 @@ class ProfilePage extends StatelessWidget {
                   backgroundColor: AppColors.error,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () {
-                  context.read<AttendanceBloc>().add(const AttendanceCleared());
-                  context.read<AuthBloc>().add(const AuthLogoutRequested());
-                },
+                onPressed: () => _confirmSignOut(context),
                 icon: const Icon(Icons.logout_rounded),
                 label: const Text('Sign Out'),
               ),
@@ -160,6 +157,50 @@ class ProfilePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        icon: const Icon(
+          Icons.logout_rounded,
+          color: AppColors.error,
+          size: 32,
+        ),
+        title: const Text(
+          'Sign Out',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Are you sure you want to sign out of your account?',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.end,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<AttendanceBloc>().add(const AttendanceCleared());
+      context.read<AuthBloc>().add(const AuthLogoutRequested());
+    }
   }
 }
 

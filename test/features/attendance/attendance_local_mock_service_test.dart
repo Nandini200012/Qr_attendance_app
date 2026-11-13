@@ -415,6 +415,7 @@ void main() {
       final todayRes = await service.handleRequest(
         method: 'GET',
         path: '/attendance/today',
+        queryParameters: {'userId': 26},
         headers: {
           'Authorization': 'Bearer $empJwt',
           'X-User-Role': 'employee',
@@ -426,7 +427,8 @@ void main() {
 
       final historyRes = await service.handleRequest(
         method: 'GET',
-        path: '/attendance/history',
+        path: '/attendance',
+        queryParameters: {'userId': 26},
         headers: {
           'Authorization': 'Bearer $empJwt',
           'X-User-Role': 'employee',

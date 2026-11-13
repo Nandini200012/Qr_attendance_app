@@ -331,10 +331,10 @@ void main() {
               endDate: any(named: 'endDate'),
               statusFilter: any(named: 'statusFilter'),
             )).thenAnswer(
-          (_) async => const Success(
+          (_) async => Success(
             AttendanceHistoryResult(
-              summary: AttendanceSummaryEntity.empty,
-              records: [],
+              summary: AttendanceSummaryEntity.empty(),
+              records: const [],
             ),
           ),
         );
@@ -348,12 +348,12 @@ void main() {
 
         Future<void>.delayed(const Duration(milliseconds: 20), () {
           when(() => todayUseCase(userId: 26)).thenAnswer(
-            (_) async => const Success(
+            (_) async => Success(
               TodayAttendanceOverview(
                 workDate: '2026-11-12',
                 status: AttendanceStatus.checkedIn,
-                summary: AttendanceSummaryEntity.empty,
-                recentRecords: [],
+                summary: AttendanceSummaryEntity.empty(),
+                recentRecords: const [],
               ),
             ),
           );
@@ -374,10 +374,10 @@ void main() {
         isA<AttendanceState>()
             .having((s) => s.dashboardStatus, 'dash3', AttendanceLoadStatus.loading),
         isA<AttendanceState>()
-            .having((s) => s.historyStatus, 'hist1', AttendanceLoadStatus.loading),
-        isA<AttendanceState>()
             .having((s) => s.dashboardStatus, 'dash4', AttendanceLoadStatus.loaded)
             .having((s) => s.todayOverview?.status, 'status', AttendanceStatus.checkedIn),
+        isA<AttendanceState>()
+            .having((s) => s.historyStatus, 'hist1', AttendanceLoadStatus.loading),
         isA<AttendanceState>()
             .having((s) => s.historyStatus, 'hist2', AttendanceLoadStatus.loaded),
       ],

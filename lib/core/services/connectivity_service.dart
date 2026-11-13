@@ -12,7 +12,7 @@ class ConnectivityPlusService implements ConnectivityService {
   final Connectivity _connectivity;
 
   bool _hasConnection(List<ConnectivityResult> results) {
-    if (results.isEmpty) return false;
+    if (results.isEmpty) return true;
     return results.any((result) => result != ConnectivityResult.none);
   }
 

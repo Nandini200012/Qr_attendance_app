@@ -83,6 +83,9 @@ void main() {
     testWidgets(
         'Dashboard shows empty state, caps recent records to 3, and reflects Checked In status',
         (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       when(() => attendanceBloc.state).thenReturn(
         AttendanceState(
           dashboardStatus: AttendanceLoadStatus.loaded,
@@ -90,7 +93,7 @@ void main() {
             workDate: '2026-11-12',
             status: AttendanceStatus.checkedIn,
             todayRecord: buildRecord('today'),
-            summary: AttendanceSummaryEntity.empty,
+            summary: AttendanceSummaryEntity.empty(),
             recentRecords: [
               buildRecord('r1'),
               buildRecord('r2'),
@@ -118,14 +121,17 @@ void main() {
 
     testWidgets('Dashboard shows exact empty text when no records exist',
         (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       when(() => attendanceBloc.state).thenReturn(
-        const AttendanceState(
+        AttendanceState(
           dashboardStatus: AttendanceLoadStatus.loaded,
           todayOverview: TodayAttendanceOverview(
             workDate: '2026-11-12',
             status: AttendanceStatus.notCheckedIn,
-            summary: AttendanceSummaryEntity.empty,
-            recentRecords: [],
+            summary: AttendanceSummaryEntity.empty(),
+            recentRecords: const [],
           ),
         ),
       );
@@ -141,9 +147,11 @@ void main() {
       expect(find.text('No attendance records yet'), findsOneWidget);
     });
 
-    testWidgets(
-        'History shows Pending sync badge, filtered empty state, and error Retry button',
+    testWidgets('History shows Pending sync badge on queued records',
         (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       when(() => attendanceBloc.state).thenReturn(
         AttendanceState(
           historyStatus: AttendanceLoadStatus.loaded,
@@ -160,6 +168,14 @@ void main() {
       );
 
       expect(find.text('Pending sync'), findsOneWidget);
+      expect(AppConstants.enableManualPayloadEntry, isTrue);
+    });
+
+    testWidgets(
+        'History shows filtered empty state when active filter has no records',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
       when(() => attendanceBloc.state).thenReturn(
         const AttendanceState(
@@ -176,7 +192,13 @@ void main() {
           child: const AttendanceHistoryPage(),
         ),
       );
+
       expect(find.text('No records match your filter.'), findsOneWidget);
+    });
+
+    testWidgets('History shows Retry button when load fails', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
       when(() => attendanceBloc.state).thenReturn(
         const AttendanceState(
@@ -193,8 +215,8 @@ void main() {
           child: const AttendanceHistoryPage(),
         ),
       );
+
       expect(find.text('Retry'), findsOneWidget);
-      expect(AppConstants.enableManualPayloadEntry, isTrue);
     });
   });
 }

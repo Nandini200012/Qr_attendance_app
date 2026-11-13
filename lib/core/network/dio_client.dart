@@ -17,7 +17,11 @@ class DioClient {
         receiveTimeout: AppConstants.receiveTimeout,
         headers: const {'Content-Type': 'application/json'},
       ),
-    )..interceptors.add(authInterceptor);
+    );
+    dummyJsonDio.interceptors.addAll([
+      authInterceptor,
+      _TransientNetworkRetryInterceptor(dummyJsonDio),
+    ]);
 
     attendanceDio = Dio(
       BaseOptions(
@@ -34,10 +38,51 @@ class DioClient {
       attendanceDio.interceptors.add(
         AttendanceMockRestInterceptor(mockAttendanceService),
       );
+    } else {
+      attendanceDio.interceptors.add(
+        _TransientNetworkRetryInterceptor(attendanceDio),
+      );
     }
   }
 
   late final Dio dummyJsonDio;
   late final Dio attendanceDio;
+}
+
+class _TransientNetworkRetryInterceptor extends Interceptor {
+  _TransientNetworkRetryInterceptor(this._dio);
+
+  final Dio _dio;
+  static const String _retriedKey = '_transient_retried';
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final alreadyRetried = err.requestOptions.extra[_retriedKey] == true;
+    final msg = err.message ?? '';
+    final isTransientReset =
+        err.type == DioExceptionType.connectionError ||
+        (err.type == DioExceptionType.unknown &&
+            (msg.contains('HandshakeException') ||
+                msg.contains('Connection reset') ||
+                msg.contains('Connection terminated')));
+
+    if (!alreadyRetried && isTransientReset) {
+      err.requestOptions.extra[_retriedKey] = true;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      try {
+        final response = await _dio.fetch<dynamic>(err.requestOptions);
+        handler.resolve(response);
+        return;
+      } on DioException catch (retryErr) {
+        handler.next(retryErr);
+        return;
+      }
+    }
+
+    handler.next(err);
+  }
 }
 
